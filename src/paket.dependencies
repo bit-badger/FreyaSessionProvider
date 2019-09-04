@@ -1,0 +1,6 @@
+source https://www.nuget.org/api/v2
+
+nuget Freya
+nuget Freya.Optics.Http.State
+nuget MiniGuid
+nuget RavenDB.Client
