@@ -20,7 +20,7 @@ type Session =
 /// Describes the required functionality of a session store
 type ISessionStore =
   /// Get a session from the store
-  abstract Get : string -> Session
+  abstract Get : string -> Session option
   /// Store a new session
   abstract Store : Session -> unit
   /// Update a session

@@ -2,6 +2,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <VersionPrefix>0.8.0</VersionPrefix>
+    <VersionSuffix>b</VersionSuffix>
+    <PackageReleaseNotes>Alpha release</PackageReleaseNotes>
+    <Authors>bit-badger; danieljsummers</Authors>
+    <Company>Bit Badger Solutions</Company>
+    <PackageProjectUrl>https://github.com/bit-badger/FreyaSessionProvider</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/bit-badger/FreyaSessionProvider</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <Copyright>MIT License</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>Freya Session Cookie F# FSharp</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="RavenDBSessionStore.fs" />

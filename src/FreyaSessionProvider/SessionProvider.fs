@@ -7,9 +7,9 @@ open Freya.Optics.Http.Cors
 open Freya.Types.Http.State
 open MiniGuids
 open System
-open Types
 open System.IO
 open System.Security.Cryptography
+open Types
 
 /// The Freya session provider
 type SessionProvider private (config : SessionProviderConfig) =
@@ -78,19 +78,17 @@ type SessionProvider private (config : SessionProviderConfig) =
 
   /// Get the session document, handling expired documents
   let getSession sessId =
-    let session = (config.store.Get >> box >> Option.ofObj) sessId
-    match session with
-    | Some sess ->
-        let s = unbox<Session> sess
-        match s.expiry < DateTime.UtcNow with
+    match config.store.Get sessId with
+    | Some session ->
+        match session.expiry < DateTime.UtcNow with
         | true -> 
             config.store.Destroy sessId
             None
-        | false -> Some s
+        | false -> Some session
     | None -> None
 
   /// Create a configured instance of the SessionProvider class
-  static member Create config = SessionProvider config
+  static member Create config : ISessionProvider = upcast SessionProvider config
 
   interface ISessionProvider with
 
