@@ -27,6 +27,7 @@ type SessionProvider private (config : SessionProviderConfig) =
     use csEncrypt = new CryptoStream (msEncrypt, enc, CryptoStreamMode.Write)
     use swEncrypt = new StreamWriter (csEncrypt)
     swEncrypt.Write (value)
+    swEncrypt.Flush ()
     msEncrypt.ToArray () |> Convert.ToBase64String
     
   /// Decrypt an encoded base64 string
@@ -39,6 +40,8 @@ type SessionProvider private (config : SessionProviderConfig) =
     
   /// Create a response cookie with the given session ID and expiration
   let responseCookie sessId expires =
+    let encSessionId = encrypt sessId
+    Console.WriteLine (sprintf "Setting cookie for session ID %s (encrypted as %s)" sessId encSessionId)
     SetCookie ((Pair (cookieName, Value (encrypt sessId))), Attributes [ Expires expires; HttpOnly ])
 
   /// Get the max age of a session
@@ -56,6 +59,7 @@ type SessionProvider private (config : SessionProviderConfig) =
   let createSessionId =
     freya {
       let sessId = (MiniGuid.NewGuid >> string) ()
+      Console.WriteLine (sprintf "Created new session ID %s" sessId)
       do! addResponseCookie sessId
       return sessId
       }
@@ -63,6 +67,7 @@ type SessionProvider private (config : SessionProviderConfig) =
   /// Get the ID of the current session (creating one if one does not exist)
   let getSessionId =
     freya {
+      // FIXME check SetCookie first; it has the ID of the current request if we generated it
       match! Freya.Optic.get (Request.Headers.cookie_) with
       | Some c ->
           let theCookie =
@@ -71,6 +76,8 @@ type SessionProvider private (config : SessionProviderConfig) =
           match theCookie with
           | Some p ->
               let (Value value) = Optic.get Pair.value_ p
+              let decValue = decrypt value
+              Console.WriteLine (sprintf "Got session from cookie; %s decrypted to %s" value decValue)
               return decrypt value
           | None -> return! createSessionId
       | None -> return! createSessionId
