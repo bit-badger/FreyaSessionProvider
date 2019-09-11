@@ -19,7 +19,7 @@ The `ISessionProvider` is the main type exposed by the project. The static funct
 - `store : ISessionStore` - The session store implementation; this should be filled in with a constructed `ISessionStore` instance, which for the RavenDB provider is `RavenDBSessionStore`
 - `crypto : SymmetricAlgorithm` - The algorithm to use for encrypting the cookie contents; defaults to null
 
-`SessionProviderConfig.defaults` contains all the default values, but leaving the final two parameters as their default values will result in a session provider that does not work. Within this repository, there is [an F# script `GenerateCrypto.fsx`](tree/master/src/FreyaSessionProvider/GenerateCrypto.fsx) that will generate cryptography keys and output code that can be used to initialize the crypto setting. There's more on RavenDB below.
+`SessionProviderConfig.defaults` contains all the default values, but leaving the final two parameters as their default values will result in a session provider that does not work. Within this repository, there is [an F# script `GenerateCrypto.fsx`](blob/master/src/FreyaSessionProvider/GenerateCrypto.fsx) that will generate cryptography keys and output code that can be used to initialize the crypto setting. There's more on RavenDB below.
 
 Once you have an `ISessionProvider` instance, there are four things you can do with it:
 
