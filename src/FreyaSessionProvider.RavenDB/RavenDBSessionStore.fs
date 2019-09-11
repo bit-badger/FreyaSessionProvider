@@ -1,12 +1,12 @@
 ﻿module FreyaSessionProvider.RavenDB
 
 open Raven.Client.Documents
+open System
 open Types
 
 /// Module to keep this similar-but-different session from being directly visible
 module DocumentType =
   
-  open System
   open System.Collections.Generic
 
   /// Shorthand for turning a session ID into a document ID
@@ -42,27 +42,42 @@ open DocumentType
 /// A RavenDB-based session store for Freya sessions
 type RavenDBSessionStore (store : IDocumentStore) =
   
+  /// Log an error
+  let logError m (ex : exn) =
+    let err = Console.Error
+    err.WriteLine (sprintf "[FreyaSession-RavenDB] %s - %s" m <| ex.GetType().Name)
+    err.WriteLine ex.StackTrace
+
   interface ISessionStore with
 
     member __.Get sessId =
-      use docSession = store.OpenSession ()
-      match (toDocumentId >> docSession.Load<RavenSession> >> box >> Option.ofObj) sessId with
-      | Some doc -> (unbox<RavenSession> >> RavenSession.toSession >> Some) doc
-      | None -> None
+      try
+        use docSession = store.OpenSession ()
+        match (toDocumentId >> docSession.Load<RavenSession> >> box >> Option.ofObj) sessId with
+        | Some doc -> (unbox<RavenSession> >> RavenSession.toSession >> Some) doc
+        | None -> None
+      with ex ->
+        logError "Get" ex
+        None
 
     member __.Store session =
-      use docSession = store.OpenSession ()
-      docSession.Store (RavenSession.ofSession session, toDocumentId session.sessionId)
-      docSession.SaveChanges ()
+      try
+        use docSession = store.OpenSession ()
+        docSession.Store (RavenSession.ofSession session, toDocumentId session.sessionId)
+        docSession.SaveChanges ()
+      with ex -> logError "Store" ex
     
     member __.Save session =
-      use docSession = store.OpenSession ()
-      docSession.Advanced.Patch (toDocumentId session.sessionId, (fun x -> x.data),   session.data)
-      docSession.Advanced.Patch (toDocumentId session.sessionId, (fun (x : Session) -> x.expiry), session.expiry)
-      docSession.SaveChanges ()
+      try
+        use docSession = store.OpenSession ()
+        docSession.Advanced.Patch (toDocumentId session.sessionId, (fun x -> x.Data),   session.data)
+        docSession.Advanced.Patch (toDocumentId session.sessionId, (fun x -> x.Expiry), session.expiry)
+        docSession.SaveChanges ()
+      with ex -> logError "Save" ex
     
     member __.Destroy sessionId =
-      let docSession = store.OpenSession ()
-      docSession.Delete (toDocumentId sessionId)
-      docSession.SaveChanges ()
-
+      try
+        let docSession = store.OpenSession ()
+        docSession.Delete (toDocumentId sessionId)
+        docSession.SaveChanges ()
+      with ex -> logError "Destroy" ex
