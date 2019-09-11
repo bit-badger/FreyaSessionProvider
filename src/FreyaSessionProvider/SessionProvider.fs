@@ -24,7 +24,6 @@ type SessionProvider private (config : SessionProviderConfig) =
     let err = Console.Error
     err.WriteLine (sprintf "[FreyaSession] %s - %s" m <| ex.GetType().Name)
     err.WriteLine ex.StackTrace
-    sprintf "***%s ERROR ***" m
 
   /// Encrypt a string, encoding it in base64
   let encrypt (value : string) =
@@ -37,17 +36,21 @@ type SessionProvider private (config : SessionProviderConfig) =
         swEncrypt.Write (value)
       finally ()
       msEncrypt.ToArray () |> Convert.ToBase64String
-    with ex -> logEncError "encrypt" ex
+    with ex ->
+      logEncError "encrypt" ex
+      "***ENCRYPTION ERROR ***"
     
   /// Decrypt an encoded base64 string
-  let decrypt (base64 : string) =
+  let tryDecrypt (base64 : string) =
     try
       use dec       = config.crypto.CreateDecryptor ()
       use msDecrypt = new MemoryStream (Convert.FromBase64String base64)
       use csDecrypt = new CryptoStream (msDecrypt, dec, CryptoStreamMode.Read)
       use srDecrypt = new StreamReader (csDecrypt)
-      srDecrypt.ReadToEnd ()
-    with ex -> logEncError "decrypt" ex
+      srDecrypt.ReadToEnd () |> Some
+    with ex ->
+      logEncError "tryDecrypt" ex
+      None
     
   /// Create a response cookie with the given session ID and expiration
   let responseCookie sessId expires =
@@ -80,7 +83,7 @@ type SessionProvider private (config : SessionProviderConfig) =
         match! Freya.Optic.get Response.Headers.setCookie_ with
         | Some c ->
             let (Value value) = (Optic.get SetCookie.pair_ >> Optic.get Pair.value_) c
-            return (decrypt >> Some) value
+            return tryDecrypt value
         | None -> return None
         }
     // Get the session ID from a cookie sent with the request
@@ -94,7 +97,7 @@ type SessionProvider private (config : SessionProviderConfig) =
             match sessionCookie with
             | Some cookie ->
                 let (Value value) = Optic.get Pair.value_ cookie
-                return (decrypt >> Some) value
+                return tryDecrypt value
             | None -> return None
         | None -> return None
         }
@@ -168,20 +171,3 @@ type SessionProvider private (config : SessionProviderConfig) =
         // Expire the cookie
         do! Freya.Optic.set Response.Headers.setCookie_ (responseCookie sessionId unixEpoch |> Some)
         }
-
-module Util =
-  
-  open System.Security.Cryptography
-
-  [<EntryPoint>]
-  let main argv =
-    let b64 = Convert.ToBase64String
-    match argv.Length with
-    | 1 when argv.[0] = "keys" ->
-        use aes = Aes.Create ()
-        Console.WriteLine (sprintf """Key = "%s"; IV = "%s" """ (b64 aes.Key) (b64 aes.IV))
-    | _ ->
-        Console.WriteLine "Usage: dotnet FreyaSessionProvider.dll keys"
-        Console.WriteLine "...to generate keys to use for the session provider"
-    0
-    
