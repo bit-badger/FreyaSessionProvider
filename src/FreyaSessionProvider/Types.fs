@@ -20,13 +20,15 @@ type Session =
 /// Describes the required functionality of a session store
 type ISessionStore =
   /// Get a session from the store
-  abstract Get : string -> Session option
+  abstract Get : string -> bool -> TimeSpan -> Session option
   /// Store a new session
   abstract Store : Session -> unit
   /// Update a session
   abstract Save : Session -> unit
   /// Delete a session's persistence
   abstract Destroy : string -> unit
+  /// Delete expired sessions
+  abstract CheckExpired : unit -> unit
 
 
 /// Configuration for the session provider
@@ -39,6 +41,10 @@ type SessionProviderConfig =
     store : ISessionStore
     /// The cryptography implementation to use to encode the session cookie payload
     crypto : SymmetricAlgorithm
+    /// Whether to reset the expiration of a session on every access
+    rollingSessions : bool
+    /// How frequently to check for and delete expired sessions
+    expiryCheck : TimeSpan
     }
 
 /// Functions to support the session provider configuration
@@ -47,17 +53,20 @@ module SessionProviderConfig =
   let private throwsSessionStore =
     let ex = NotImplementedException "You must provide a session store implementation"
     { new ISessionStore with
-        member __.Get _     = raise ex
-        member __.Store _   = raise ex
-        member __.Save _    = raise ex
-        member __.Destroy _ = raise ex
+        member __.Get _ _ _       = raise ex
+        member __.Store _         = raise ex
+        member __.Save _          = raise ex
+        member __.Destroy _       = raise ex
+        member __.CheckExpired () = raise ex
       }
   /// Default values for session configuration
   let defaults =
-    { cookieName = ".FreyaSession"
-      expiry     = TimeSpan (1, 0, 0)
-      store      = throwsSessionStore
-      crypto     = null
+    { cookieName      = ".FreyaSession"
+      expiry          = TimeSpan (1, 0, 0)
+      store           = throwsSessionStore
+      crypto          = null
+      rollingSessions = true
+      expiryCheck     = TimeSpan (0, 1, 0)
       }
 
 

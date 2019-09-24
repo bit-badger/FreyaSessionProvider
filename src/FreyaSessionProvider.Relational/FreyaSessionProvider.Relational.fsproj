@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>A session store implementation for Freya, using a backing RavenDB database store</Description>
+    <Description>A session store implementation for Freya, using a backing relational database store</Description>
     <VersionPrefix>0.8.0</VersionPrefix>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>Alpha release</PackageReleaseNotes>
     <Authors>bit-badger; danieljsummers</Authors>
     <Company>Bit Badger Solutions</Company>
     <PackageProjectUrl>https://github.com/bit-badger/FreyaSessionProvider</PackageProjectUrl>
@@ -13,13 +13,11 @@
     <RepositoryType>Git</RepositoryType>
     <Copyright>MIT License</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>Freya Session F# FSharp RavenDB</PackageTags>
+    <PackageTags>Freya Session F# FSharp Relational PostgreSQL MySQL SqlServer SQLite</PackageTags>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="RavenDBSessionStore.fs" />
+    <Compile Include="RelationalSessionStore.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\FreyaSessionProvider\FreyaSessionProvider.fsproj" />
-  </ItemGroup>
-  <Import Project="..\.paket\Paket.Restore.targets" />
+
 </Project>

@@ -4,7 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>A session store implementation for Freya, using a backing RavenDB database store</Description>
     <VersionPrefix>0.8.0</VersionPrefix>
+<<<<<<< Updated upstream
+    <Description>The RavenDB session store implementation for use with FreyaSessionProvider</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+=======
+    <PackageReleaseNotes>Alpha release</PackageReleaseNotes>
+>>>>>>> Stashed changes
     <Authors>bit-badger; danieljsummers</Authors>
     <Company>Bit Badger Solutions</Company>
     <PackageProjectUrl>https://github.com/bit-badger/FreyaSessionProvider</PackageProjectUrl>

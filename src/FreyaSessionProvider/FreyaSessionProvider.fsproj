@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>A session store implementation for Freya (base package; requires one of several persistence packages)</Description>
     <VersionPrefix>0.8.0</VersionPrefix>
-    <Description>A session provider for Freya</Description>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <Authors>bit-badger; danieljsummers</Authors>
     <Company>Bit Badger Solutions</Company>

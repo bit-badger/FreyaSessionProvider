@@ -50,11 +50,20 @@ type RavenDBSessionStore (store : IDocumentStore) =
 
   interface ISessionStore with
 
-    member __.Get sessId =
+    member __.Get sessId useRolling expiry =
       try
         use docSession = store.OpenSession ()
         match (toDocumentId >> docSession.Load<RavenSession> >> box >> Option.ofObj) sessId with
-        | Some doc -> (unbox<RavenSession> >> RavenSession.toSession >> Some) doc
+        | Some doc ->
+            let sess = unbox<RavenSession> doc
+            match useRolling with
+            | true ->
+                let newExpiry = DateTime.UtcNow + expiry
+                docSession.Advanced.Patch (sess.Id, (fun x -> x.Expiry), newExpiry)
+                docSession.SaveChanges ()
+                { sess with Expiry = newExpiry }
+            | false -> sess
+            |> (RavenSession.toSession >> Some)
         | None -> None
       with ex ->
         logError "Get" ex
@@ -81,3 +90,10 @@ type RavenDBSessionStore (store : IDocumentStore) =
         docSession.Delete (toDocumentId sessionId)
         docSession.SaveChanges ()
       with ex -> logError "Destroy" ex
+    
+    member __.CheckExpired () =
+      try
+        use docSession = store.OpenSession ()
+        // TODO get syntax
+        docSession.SaveChanges ()
+      with ex -> logError "CheckExpired" ex

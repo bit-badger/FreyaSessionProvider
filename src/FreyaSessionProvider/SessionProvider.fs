@@ -112,7 +112,7 @@ type SessionProvider private (config : SessionProviderConfig) =
 
   /// Get the session document, handling expired documents
   let getSession sessId =
-    match config.store.Get sessId with
+    match config.store.Get sessId config.rollingSessions config.expiry with
     | Some session ->
         match session.expiry < DateTime.UtcNow with
         | true -> 
@@ -121,6 +121,17 @@ type SessionProvider private (config : SessionProviderConfig) =
         | false -> Some session
     | None -> None
 
+  /// The next time expired sessions should be checked
+  let mutable nextExpiryCheck = DateTime.MinValue
+
+  /// Check for expired sessions if the interval has elapsed
+  let checkExpiry () =
+    match nextExpiryCheck < DateTime.UtcNow with
+    | true ->
+        config.store.CheckExpired ()
+        nextExpiryCheck <- DateTime.UtcNow + config.expiryCheck
+    | false -> ()
+  
   /// Create a configured instance of the SessionProvider class
   static member Create config : ISessionProvider = upcast SessionProvider config
 
