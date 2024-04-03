@@ -1,3 +1,7 @@
+## NOTE _(April 2024)_
+
+The Freya project is no longer active; this repository has followed its lead.
+
 # FreyaSessionProvider
 
 ![Nuget](https://img.shields.io/nuget/v/FreyaSessionProvider)
